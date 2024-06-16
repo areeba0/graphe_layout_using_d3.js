@@ -29,14 +29,25 @@ The project is divided into several components, each handling a different type o
 - Grid Layout: Nodes are arranged in a grid based on chosen criteria such as alphabetical order or node degree.
   ![grid](https://github.com/areeba0/graphe_layout_using_d3.js/assets/136759791/4302e171-0878-4702-90c3-7a66d3bd6fa4)
 
+
 - Chord Diagram: Nodes are arranged in a circular layout with edges represented as SVG curves.
   ![chord1](https://github.com/areeba0/graphe_layout_using_d3.js/assets/136759791/7646c572-ecbe-4d95-a586-ddabd3d5c40c)
 
 
 # Directed Acyclic Graph (DAG)
 - Sugiyama Layout: Nodes are layered based on the heuristic discussed in class, ignoring crossing minimization.
+  ![sg](https://github.com/areeba0/graphe_layout_using_d3.js/assets/136759791/fa46978f-71df-483f-bf20-22061cd43dca)
+
+
 - Radial Sugiyama Layout: Similar to Sugiyama Layout but with nodes arranged radially.
+  ![Screenshot 2024-06-16 181304](https://github.com/areeba0/graphe_layout_using_d3.js/assets/136759791/8c19b4a4-5e1c-4f91-8db2-f57652b550f6)
+
 
 # Tree
 - Rheingold Tilford Layout: Bottom-up traversal using Depth First Search, with subtrees merged as discussed in class.
+  ![RT](https://github.com/areeba0/graphe_layout_using_d3.js/assets/136759791/a5992c6e-1a27-4858-952a-126760a248fc)
+
+
 - Icicle Layout: Nodes are arranged in an icicle plot with equal-sized leaf nodes.
+  ![ICICDE](https://github.com/areeba0/graphe_layout_using_d3.js/assets/136759791/5e8bdf81-d53c-4723-8fbe-18ff7ccf14aa)
+
