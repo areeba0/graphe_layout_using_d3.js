@@ -16,6 +16,8 @@ The project is divided into several components, each handling a different type o
 
 # Features
 - File Upload: Upload adjacency matrix files for graph visualization.
+  ![grAPHI_fileupload](https://github.com/areeba0/graphe_layout_using_d3.js/assets/136759791/c9c7ca21-831b-4bed-9181-b7d631e51071)
+
 - Graph Analysis: Identify cycles, check connectivity, and classify the graph as a General Graph, Directed Acyclic Graph (DAG), or a Tree.
 - Custom Layouts:
    -General Graph: Grid Layout, Chord Diagram.
@@ -23,8 +25,13 @@ The project is divided into several components, each handling a different type o
    -Tree: Rheingold Tilford Layout, Icicle Layout.
 
 # General Graph
+
 - Grid Layout: Nodes are arranged in a grid based on chosen criteria such as alphabetical order or node degree.
+  ![grid](https://github.com/areeba0/graphe_layout_using_d3.js/assets/136759791/4302e171-0878-4702-90c3-7a66d3bd6fa4)
+
 - Chord Diagram: Nodes are arranged in a circular layout with edges represented as SVG curves.
+  ![chord1](https://github.com/areeba0/graphe_layout_using_d3.js/assets/136759791/7646c572-ecbe-4d95-a586-ddabd3d5c40c)
+
 
 # Directed Acyclic Graph (DAG)
 - Sugiyama Layout: Nodes are layered based on the heuristic discussed in class, ignoring crossing minimization.
