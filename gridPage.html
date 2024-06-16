@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>D3.js Grid Example</title>
+  <script src="https://d3js.org/d3.v5.min.js"></script>
+  <style>
+    /* Add some basic styling to the grid lines */
+    .grid line {
+      stroke: #E0B0FF;
+      stroke-opacity: 5.7;
+      shape-rendering: crispEdges;
+    }
+
+    /* Style for the nodes */
+    .node {
+      fill: purple;
+      stroke: black;
+    }
+
+    /* Style for the edges */
+    .edge {
+      stroke: lightgrey;
+      stroke-width: 0.5;
+    }
+    button {
+    outline: none;
+    color: #f2f2f2;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 8px;
+    padding: 10px 16px; /* Adjust the padding as needed */
+    border: none;
+    margin: 8px 12px; /* Adjust the margin between buttons */
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background-image: linear-gradient(135deg, #b4aee8 10%, #9370DB 100%);
+}
+
+button:hover {
+    transform: scale(0.95);
+    background-image: linear-gradient(135deg, #9370DB 10%, #b4aee8 100%);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+  </style>
+</head>
+<body>
+
+<input type="file" id="fileInput" accept=".csv">
+<button onclick="createGrid()">Create Grid</button>
+
+<div id="gridContainer"></div>
+
+<script>
+  function createGridLayout(adjacencyMatrix) {
+    // Calculate the number of rows and columns in the matrix
+    const numRows = adjacencyMatrix.length;
+    const numCols = adjacencyMatrix[0].length;
+
+    // Set up the dimensions and margin of the SVG container based on the number of nodes
+    const margin = { top: 20, right: 20, bottom: 40, left: 40 };
+    const width = 50 * numCols + margin.left + margin.right;
+    const height = 50 * numRows + margin.top + margin.bottom;
+
+    // Create an SVG container
+    const svg = d3.select("#gridContainer")
+      .html("") // Clear previous content
+      .append("svg")
+      .attr("width", width)
+      .attr("height", height)
+      .append("g")
+      .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+    // Create scales for x and y axes
+    const xScale = d3.scaleLinear().domain([0, numCols]).range([0, width - margin.left - margin.right]);
+    const yScale = d3.scaleLinear().domain([0, numRows]).range([height - margin.top - margin.bottom, 0]);
+
+    // Function to lay out nodes based on their order in the adjacency matrix
+    function layoutNodes() {
+      const nodes = [];
+      adjacencyMatrix.forEach((row, i) => {
+        row.forEach((value, j) => {
+          if (value === 1) {
+            nodes.push({ x: xScale(j), y: yScale(i), label: ` ${i}-${j}` });
+          }
+        });
+      });
+      return nodes;
+    }
+
+    // Draw grid lines
+    svg.append("g")
+      .attr("class", "grid")
+      .attr("transform", "translate(0," + (height - margin.top - margin.bottom) + ")")
+      .call(d3.axisBottom(xScale).tickSize(-height).tickFormat(""));
+
+    svg.append("g")
+      .attr("class", "grid")
+      .call(d3.axisLeft(yScale).tickSize(-width).tickFormat(""));
+
+    // Draw edges
+    const edges = [];
+    adjacencyMatrix.forEach((row, i) => {
+      row.forEach((value, j) => {
+        if (value === 1) {
+          // Connect nodes with edges
+          for (let k = 0; k < numRows; k++) {
+            for (let l = 0; l < numCols; l++) {
+              if (adjacencyMatrix[k][l] === 1) {
+                edges.push({ x1: xScale(j), y1: yScale(i), x2: xScale(l), y2: yScale(k) });
+              }
+            }
+          }
+        }
+      });
+    });
+
+    svg.selectAll(".edge")
+      .data(edges)
+      .enter().append("line")
+      .attr("class", "edge")
+      .attr("x1", d => d.x1)
+      .attr("y1", d => d.y1)
+      .attr("x2", d => d.x2)
+      .attr("y2", d => d.y2);
+
+    // Draw nodes
+    const nodes = layoutNodes();
+
+    svg.selectAll(".node")
+      .data(nodes)
+      .enter().append("circle")
+      .attr("class", "node")
+      .attr("cx", d => d.x)
+      .attr("cy", d => d.y)
+      .attr("r", 10);  // Radius of the nodes
+
+    // Add labels to nodes
+    svg.selectAll(".label")
+      .data(nodes)
+      .enter().append("text")
+      .attr("class", "label")
+      .attr("x", d => d.x)
+      .attr("y", d => d.y)
+      .attr("dy", -12)  // Offset the label above the node
+      .attr("text-anchor", "middle")
+      .text(d => d.label);
+  }
+
+  function createGrid() {
+    const fileInput = document.getElementById("fileInput");
+    const file = fileInput.files[0];
+
+    if (file) {
+      const reader = new FileReader();
+
+      reader.onload = function (e) {
+        const content = e.target.result;
+        const rows = content.trim().split('\n').map(row => row.split(',').map(Number));
+        createGridLayout(rows);
+      };
+
+      reader.readAsText(file);
+    } else {
+      alert("Please select a file.");
+    }
+  }
+</script>
+
+</body>
+</html>

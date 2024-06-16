@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>D3.js Directed Sugiyama Layout</title>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+<body>
+<style>
+button {
+    outline: none;
+    color: #f2f2f2;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 8px;
+    padding: 10px 16px; /* Adjust the padding as needed */
+    border: none;
+    margin: 8px 12px; /* Adjust the margin between buttons */
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background-image: linear-gradient(135deg, #b4aee8 10%, #9370DB 100%);
+}
+
+button:hover {
+    transform: scale(0.95);
+    background-image: linear-gradient(135deg, #9370DB 10%, #b4aee8 100%);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+</style>
+<!-- Input for uploading CSV file -->
+<input type="file" id="fileInput" accept=".csv">
+
+<!-- Button to create Sugiyama layout -->
+<button onclick="createSugiyama()">Create Sugiyama Layout</button>
+
+<script>
+// Function to read CSV file and generate Sugiyama layout
+function createSugiyama() {
+  const fileInput = document.getElementById('fileInput');
+  const file = fileInput.files[0];
+
+  if (file) {
+    const reader = new FileReader();
+
+    reader.onload = function (e) {
+      const csvData = e.target.result;
+      const adjacencyMatrix = parseCSV(csvData);
+      generateSugiyama(adjacencyMatrix);
+    };
+
+    reader.readAsText(file);
+  } else {
+    alert('Please select a CSV file.');
+  }
+}
+
+// Function to parse CSV data into an adjacency matrix
+function parseCSV(csvData) {
+  const rows = csvData.trim().split('\n');
+  const adjacencyMatrix = [];
+
+  for (const row of rows) {
+    const values = row.split(',');
+    const rowValues = values.map(value => parseInt(value, 10));
+    adjacencyMatrix.push(rowValues);
+  }
+
+  return adjacencyMatrix;
+}
+
+// Function to calculate node layers
+function calculateNodeLayers(adjMatrix) {
+  const layers = [];
+  const visited = new Array(adjMatrix.length).fill(false);
+
+  function dfs(node, layer) {
+    visited[node] = true;
+
+    if (!layers[layer]) {
+      layers[layer] = [];
+    }
+
+    layers[layer].push(node);
+
+    for (let i = 0; i < adjMatrix.length; i++) {
+      if (adjMatrix[node][i] === 1 && !visited[i]) {
+        dfs(i, layer + 1);
+      }
+    }
+  }
+
+  for (let i = 0; i < adjMatrix.length; i++) {
+    if (!visited[i]) {
+      dfs(i, 0);
+    }
+  }
+
+  return layers;
+}
+
+// Function to generate Sugiyama layout
+function generateSugiyama(adjMatrix) {
+  const nodeLayers = calculateNodeLayers(adjMatrix);
+
+  const nodeWidth = 270;
+  const layerHeight = 65;
+
+  // Calculate the width and height of the SVG container dynamically
+  const svgWidth = nodeLayers.reduce((acc, layer) => acc + layer.length * nodeWidth, 0);
+  const svgHeight = layerHeight * nodeLayers.length;
+
+  // Remove existing SVG elements
+  d3.select("svg").remove();
+
+  const svg = d3.select("body").append("svg")
+    .attr("width", svgWidth)
+    .attr("height", svgHeight);
+
+  // Find the longest path
+  const longestPath = nodeLayers.reduce((acc, layer) => Math.max(acc, layer.length), 0);
+
+  // Color schemes
+  const nodeColor = "purple";
+  const edgeColor = "purple";
+
+  // Position nodes and draw edges
+  nodeLayers.forEach((layer, i) => {
+    layer.forEach((node, j) => {
+      const x = j * nodeWidth;
+      const y = i * layerHeight + (longestPath - layer.length) * layerHeight / 2;
+
+      // Draw node
+      svg.append("circle")
+        .attr("cx", x + nodeWidth / 2)
+        .attr("cy", y + layerHeight / 2)
+        .attr("r", 20)
+        .attr("fill", nodeColor);
+
+      // Label node
+      svg.append("text")
+        .attr("x", x + nodeWidth / 2)
+        .attr("y", y + layerHeight / 2)
+        .attr("dy", "0.15em")
+        .attr("text-anchor", "middle")
+        .attr("fill", "white")
+        .text(node);
+
+      // Draw edges
+      for (let k = 0; k < adjMatrix.length; k++) {
+        if (adjMatrix[node][k] === 1) {
+          const targetLayer = nodeLayers.findIndex(layer => layer.includes(k));
+          const targetX = nodeLayers[targetLayer].indexOf(k) * nodeWidth;
+          const targetY = targetLayer * layerHeight + (longestPath - nodeLayers[targetLayer].length) * layerHeight / 2;
+
+          svg.append("line")
+            .attr("x1", x + nodeWidth / 2)
+            .attr("y1", y + layerHeight / 2)
+            .attr("x2", targetX + nodeWidth / 2)
+            .attr("y2", targetY + layerHeight / 2)
+            .attr("stroke", edgeColor);
+        }
+      }
+    });
+  });
+}
+
+</script>
+
+</body>
+</html>

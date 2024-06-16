@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Icicle Layout</title>
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <style>
+        /* Your existing CSS styles */
+        rect {
+            stroke: #DF73FF;
+            stroke-width: 2;
+            rx: 60;
+        }
+
+        text {
+            font-size: 12px;
+            fill: #333;
+            pointer-events: none;
+        }
+         button {
+    outline: none;
+    color: #f2f2f2;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 8px;
+    padding: 10px 16px; /* Adjust the padding as needed */
+    border: none;
+    margin: 8px 12px; /* Adjust the margin between buttons */
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background-image: linear-gradient(135deg, #b4aee8 10%, #9370DB 100%);
+}
+
+button:hover {
+    transform: scale(0.95);
+    background-image: linear-gradient(135deg, #9370DB 10%, #b4aee8 100%);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+    </style>
+</head>
+
+<body>
+    <input type="file" id="fileInput" accept=".csv">
+    <button onclick="createIciclePlot()">Create Icicle Plot</button>
+    <svg id="icicle-layout"></svg>
+
+    <script>
+        function createIciclePlot() {
+            // Read the CSV file
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const csvData = d3.csvParse(e.target.result);
+                    generateIcicleLayout(csvData);
+                };
+                reader.readAsText(file);
+            } else {
+                alert('Please select a CSV file.');
+            }
+        }
+
+        function generateIcicleLayout(adjacencyMatrix) {
+            // Constants
+            const width = 680;
+            const height = 400;
+            const colorScheme = ["#660066", "#E0B0FF"];
+            const rowSpacing = 5; // Adjust this value to control the spacing between rectangles
+
+            function setupSvg() {
+                return d3.select("#icicle-layout")
+                    .attr("width", width)
+                    .attr("height", height);
+            }
+
+            function createRectangles(svg, root) {
+                svg.selectAll("rect")
+                    .data(root.descendants())
+                    .enter().append("rect")
+                    .attr("x", d => d.x0)
+                    .attr("y", d => d.y0)
+                    .attr("width", d => d.x1 - d.x0 - (d.children ? 0 : rowSpacing))
+                    .attr("height", d => d.y1 - d.y0)
+                    .attr("fill", d => colorScheme[d.depth % colorScheme.length]);
+            }
+
+            function addText(svg, root) {
+                svg.append("g")
+                    .selectAll("text")
+                    .data(root.descendants())
+                    .enter()
+                    .filter(d => !d.children)
+                    .append("text")
+                    .attr("x", d => (d.x0 + d.x1) / 2)
+                    .attr("y", d => (d.y0 + d.y1) / 2)
+                    .attr("dy", "0.35em")
+                    .attr("text-anchor", "middle")
+                    .attr("fill", "black")
+                    .text((d, i) => `Node ${i + 2}`);
+            }
+
+            const svg = setupSvg();
+            const root = d3.hierarchy({ children: adjacencyMatrix }).sum(d => d.children ? 0 : 1);
+
+            const partition = d3.partition().size([width, height]);
+            partition(root);
+
+            createRectangles(svg, root);
+            addText(svg, root);
+
+            return svg.node();
+        }
+    </script>
+</body>
+
+</html>

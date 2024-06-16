@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Graph Analysis</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        body {
+            height: 100vh;
+            width: 100%;
+            display: flex;
+            background-image: linear-gradient(135deg, #d8d4fc 10%, #b4aee8 100%);
+        }
+
+        ::selection {
+            color: #f2f2f2;
+            background: #b4aee8;
+        }
+
+        body::before,
+        body::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 100%;
+        }
+
+        body::before {
+            clip-path: circle(30% at left 20%);
+            opacity: 0.4;
+            background-image: linear-gradient(135deg, #b4aee8 10%, #d8d4fc 100%);
+        }
+
+        body::after {
+            opacity: 0.4;
+            clip-path: circle(25% at right 80%);
+            background-image: linear-gradient(135deg, #b4aee8 10%, #d8d4fc 100%);
+        }
+
+        header {
+            height: 30vh;
+            width: 90%;
+            background: rgba(255, 255, 255, 0.1); /* Modified to a more transparent background */
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+            border-top: 1px solid rgba(255, 255, 255, 0.5);
+            border-left: 1px solid rgba(255, 255, 255, 0.5);
+            z-index: 12;
+            border-radius: 25px;
+            margin: auto;
+            position: relative;
+            backdrop-filter: blur(10px); /* Added a backdrop-filter for the glassmorphic effect */
+        }
+
+        header .navbar {
+            margin: auto;
+            width: 100%;
+            padding: 35px 50px;
+            border-radius: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar .menu {
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        .navbar .logo a {
+            text-decoration: none;
+            font-size: 22px;
+            color: #000;
+            font-weight: 600;
+        }
+
+        .navbar .menu li {
+            list-style: none;
+            margin: 0 6px;
+        }
+
+        .navbar .menu a {
+            color: #000;
+            text-decoration: none;
+            font-size: 17px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .navbar .menu a:hover
+        {
+            color: #f2f2f2;
+        }
+
+        .navbar .buttons input
+        {
+            outline: none;
+            color: #f2f2f2;
+            font-size: 18px;
+            font-weight: 500;
+            border-radius: 12px;
+            padding: 6px 15px;
+            border: none;
+            margin: 0 8px;
+            cursor: pointer;
+            transition: all 0.5s ease;
+            background-image: linear-gradient(135deg, #b4aee8 10%, #9370DB 100%);
+        }
+
+        .navbar .buttons input:hover {
+            transform: scale(0.78);
+        }
+
+        header .text-content {
+            width: 60%;
+            margin: 100px 0 0 50px;
+        }
+
+        .text-content h2 {
+            font-size: 27px;
+            font-weight: 600;
+        }
+
+        .text-content p {
+            font-size: 15px;
+            margin-top: 10px;
+        }
+
+        header .play-button {
+            position: absolute;
+            right: 50px;
+            bottom: 40px;
+        }
+
+        .play-button .play {
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        .play-button .play::before {
+            content: '';
+            position: absolute;
+            height: 3px;
+            width: 50px;
+            top: 50%;
+            transform: translateY(-50%);
+            left: -58px;
+            background: #000;
+        }
+
+        .play-button i {
+            height: 40px;
+            width: 40px;
+            border: 2px solid #000;
+            line-height: 38px;
+            text-align: center;
+            margin-left: 10px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        @media (max-width: 850px) {
+            header .navbar {
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                padding: 15px 5px;
+            }
+
+            .navbar .menu {
+                margin: 10px 0 20px 0;
+            }
+
+            header .text-content {
+                margin: 30px 0 0 20px;
+                width: 70%;
+            }
+
+            header .text-content h2 {
+                font-size: 20px;
+            }
+        }
+
+        @media (max-width: 410px) {
+            header {
+                height: 100vh;
+                width: 100%;
+                border-radius: 0px;
+            }
+
+            header .navbar {
+                padding: 15px 10px;
+            }
+        }
+
+        /* Additional styles for file 2 specific elements */
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+/* Additional styles for the buttons in the middle of the page */
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh; /* Adjust the height if needed */
+}
+
+.buttons {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 20px; /* Adjust the margin as needed */
+}
+
+#csvFile,
+#analyzeButton {
+    outline: none;
+    color: #f2f2f2;
+    font-size: 18px;
+    font-weight: 500;
+    border-radius: 12px;
+    padding: 10px 15px; /* Adjust the padding as needed */
+    border: none;
+    margin: 8px 0; /* Adjust the vertical margin to add space */
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background-image: linear-gradient(135deg, #b4aee8 10%, #9370DB 100%);
+}
+
+#csvFile:hover,
+#analyzeButton:hover {
+    transform: scale(0.95); /* Adjust the scale as needed */
+    background-image: linear-gradient(135deg, #9370DB 10%, #b4aee8 100%);
+}
+
+
+/* Additional styles for the white cards */
+.card-container {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    margin: 20px 0; /* Adjust the margin as needed */
+}
+
+.card {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    width: 200px; /* Adjust the width as needed */
+    text-align: center;
+    transition: all 0.3s ease;
+    margin: 0 10px; /* Adjust the margin between cards */
+}
+
+.card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.2);
+}
+
+.card-buttons {
+    margin-top: 15px;
+}
+
+.card-action-button {
+    outline: none;
+    color: #f2f2f2;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 8px;
+    padding: 8px 12px; /* Adjust the padding as needed */
+    border: none;
+    margin: 50 12px; /* Adjust the margin between buttons */
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background-image: linear-gradient(135deg, #b4aee8 10%, #9370DB 100%);
+}
+
+.card-action-button:hover {
+    transform: scale(0.95);
+    background-image: linear-gradient(135deg, #9370DB 10%, #b4aee8 100%);
+}
+
+
+
+
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="logo"><a href="#">Graphi![^=^]</a></div>
+            <ul class="menu">
+                <li><a href="home.html">Home</a></li>
+                <li><a href="graphanalyz.html">Graph Recommender</a></li>
+                <li><a href="#">Graph Maker</a></li>
+            </ul>
+            <div class="buttons">
+                <a href="graphanalyz.html"><input type="button" value="ANALYZE"></a>
+                <a href="#"><input type="button" value="CREATE"></a>
+            </div>
+        </nav>
+    </header>
+
+    <div class="container">
+        <input type="file" id="csvFile" accept=".csv">
+        <button id="analyzeButton">Analyze Graph</button>
+    </div>
+
+    <p id="recommendations"></p>
+<!-- Three white cards at the end of the web page -->
+    <div class="card-container">
+        <div class="card">
+            <h3>GENERAL</h3>
+             <div class="card-buttons">
+                <button class="card-action-button" onclick="openChordPage()">Chord</button>
+                <button class="card-action-button" onclick="openGridPage()">Grid</button>
+            </div>
+        </div>
+        <div class="card">
+            <h3>DAG</h3>
+            <div class="card-buttons">
+                <button class="card-action-button" onclick="openSugiyamaPage()">SG</button>
+                <button class="card-action-button" onclick="openRadSugiyamaPage()">Rad Sug</button>
+            </div>
+        </div>
+        <div class="card">
+            <h3>TREE</h3>
+           <div class="card-buttons">
+                <button class="card-action-button" onclick="openRFPage()">RTilford </button>
+                <button class="card-action-button" onclick="openIciclePage() ">Icicle</button>
+            </div>
+        </div>
+    </div>
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <script>
+        document.getElementById('csvFile').addEventListener('change', handleFileSelect);
+        document.getElementById('analyzeButton').addEventListener('click', analyzeGraph);
+
+        let graphData; // Global variable to store graph data
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const text = e.target.result;
+                    graphData = parseCSV(text);
+                };
+                reader.readAsText(file);
+            }
+        }
+
+        function parseCSV(text) {
+            const rows = d3.csvParseRows(text);
+            const nodes = rows[0].slice(1);
+            const adjacencyMatrix = rows.slice(1).map(row => row.slice(1).map(Number));
+
+            const edgeList = [];
+            for (let i = 0; i < nodes.length; i++) {
+                for (let j = 0; j < nodes.length; j++) {
+                    if (adjacencyMatrix[i][j] === 1) {
+                        // Use nodes[i] as source and nodes[j] as target for directed edges
+                        edgeList.push({ source: nodes[i], target: nodes[j] });
+                    }
+                }
+            }
+
+            return edgeList;
+        }
+
+        function analyzeGraph() {
+            if (!graphData) {
+                alert('Please upload a CSV file first.');
+                return;
+            }
+
+            const isDAG = isDirectedAcyclicGraph(graphData);
+            const isTree = isTreeGraph(graphData);
+
+            if (isDAG) {
+                displayRecommendations('Suggestions for Directed Acyclic Graph (DAG):<br>1. Sugiyama Layout<br>2. Radial Sugiyama Layout');
+            } else if (isTree) {
+                displayRecommendations('Suggestions for Tree:<br>1. Reingold-Tilford Tree Layout<br>2. Icicle Tree Layout');
+            } else {
+                displayRecommendations('Suggestions for General Graph:<br>1. Grid Layout<br>2. Chord Diagram');
+            }
+        }
+
+        function displayRecommendations(suggestions) {
+            document.getElementById('recommendations').innerHTML = suggestions;
+        }
+
+        function isDirectedAcyclicGraph(graphData) {
+            const adjacencyList = createAdjacencyList(graphData);
+            const visitedNodes = new Set();
+            const recursionStack = new Set();
+            let isDAG = true;
+
+            function hasCycleDFS(node) {
+                visitedNodes.add(node);
+                recursionStack.add(node);
+
+                for (const neighbor of adjacencyList[node]) {
+                    if (!visitedNodes.has(neighbor)) {
+                        hasCycleDFS(neighbor);
+                    } else if (recursionStack.has(neighbor)) {
+                        isDAG = false;
+                        return;
+                    }
+                }
+
+                recursionStack.delete(node);
+            }
+
+            for (const node of Object.keys(adjacencyList)) {
+                if (!visitedNodes.has(node)) {
+                    hasCycleDFS(node);
+                    if (!isDAG) {
+                        break;
+                    }
+                }
+            }
+
+            return isDAG;
+        }
+
+        function isTreeGraph(graphData) {
+            const adjacencyList = createAdjacencyList(graphData);
+            const visitedNodes = new Set();
+            let edgeCount = 0;
+
+            function dfs(node) {
+                visitedNodes.add(node);
+
+                for (const neighbor of adjacencyList[node]) {
+                    edgeCount += 1;
+                    if (!visitedNodes.has(neighbor)) {
+                        dfs(neighbor);
+                    }
+                }
+            }
+
+            dfs(Object.keys(adjacencyList)[0]);
+
+            return edgeCount === graphData.length && visitedNodes.size === Object.keys(adjacencyList).length;
+        }
+
+        function createAdjacencyList(graphData) {
+            const adjacencyList = {};
+
+            for (const edge of graphData) {
+                const source = edge.source;
+                const target = edge.target;
+
+                if (!adjacencyList[source]) {
+                    adjacencyList[source] = [];
+                }
+
+                if (!adjacencyList[target]) {
+                    adjacencyList[target] = [];
+                }
+
+                adjacencyList[source].push(target);
+            }
+
+            return adjacencyList;
+        }
+        function openGridPage() {
+        // Redirect to the grid page
+        window.location.href = 'gridPage.html'; 
+    }
+    function openChordPage() {
+        // Redirect to the chord page
+        window.location.href = 'chordPage.html'; 
+    }
+    function openSugiyamaPage() {
+        
+        window.location.href = 'sugiyamaPage.html'; 
+    }
+    function openIciclePage() {
+        
+        window.location.href = 'iciclePage.html'; 
+    }
+    function openRFPage() {
+        
+        window.location.href = 'rfPage.html'; 
+    }
+    function openRadSugiyamaPage() {
+        
+        window.location.href = 'radsugiyamaPage.html'; 
+    }
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <style>
+    svg {
+      display: block;
+      margin: auto;
+    }
+
+    .node circle {
+      fill: #660066;
+      /* Dark purple */
+      stroke: #E0B0FF;
+      /* White border */
+      stroke-width: 2.5px;
+      cursor: pointer;
+      /* Add cursor pointer for interactivity */
+    }
+
+    .node:hover circle {
+      fill: #FAE6FA;
+      /* change fill color to pink on hover */
+    }
+
+    .node text {
+      font: 10px sans-serif;
+    }
+
+    .link {
+      fill: none;
+      stroke: #cc99ff;
+      /* Light lilac purple */
+      stroke-width: 1.7px;
+    }
+     button {
+    outline: none;
+    color: #f2f2f2;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 8px;
+    padding: 10px 16px; /* Adjust the padding as needed */
+    border: none;
+    margin: 8px 12px; /* Adjust the margin between buttons */
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background-image: linear-gradient(135deg, #b4aee8 10%, #9370DB 100%);
+}
+
+button:hover {
+    transform: scale(0.95);
+    background-image: linear-gradient(135deg, #9370DB 10%, #b4aee8 100%);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+  </style>
+</head>
+
+<body>
+
+  <input type="file" id="fileInput" />
+  <button onclick="readFile()">Create RT</button>
+  <div id="visualization"></div>
+
+  <script>
+    function generateRT(adjMatrix) {
+      // Create a tree structure from the adjacency matrix
+      const treeData = createTreeStructure(adjMatrix);
+
+      // Set up the D3 tree layout with vertical orientation
+      const treeLayout = d3.tree().size([500, 500]);
+
+      // Create a root node for the tree
+      const rootNode = d3.hierarchy(treeData);
+
+      // Assign new y-coordinates based on the depth for layers and levels
+      treeLayout(rootNode);
+
+      // Create an SVG container
+      const svg = d3.select('#visualization').append('svg').attr('width', 550).attr('height', 550);
+
+      // Draw links between nodes
+      svg.selectAll('path.link')
+        .data(rootNode.links())
+        .enter().append('path')
+        .attr('class', 'link')
+        .attr('d', d3.linkVertical()
+          .x(d => d.x)
+          .y(d => d.y));
+
+      // Draw nodes
+      const nodes = svg.selectAll('g.node')
+        .data(rootNode.descendants())
+        .enter().append('g')
+        .attr('class', 'node')
+        .attr('transform', d => `translate(${d.x},${d.y})`);
+
+      nodes.append('circle')
+        .attr('r', 5);
+
+      // Add labels to nodes
+      nodes.append('text')
+        .attr('dy', '0.35em')
+        .attr('x', d => (d.children ? -1 : 1) * 8)
+        .style('text-anchor', d => d.children ? 'end' : 'start')
+        .text(d => d.data.name);
+
+      // Add numbers to nodes
+      nodes.append('text')
+        .attr('dy', '1.5em')
+        .attr('x', 0)
+        .style('text-anchor', 'middle')
+        .style('font-weight', 'bold')
+        .text(d => d.data.name.split(' ')[1]);
+    }
+
+    function createTreeStructure(adjMatrix) {
+      const numNodes = adjMatrix.length;
+      const treeData = {
+        name: 'Root',
+        children: []
+      };
+
+      for (let i = 0; i < numNodes; i++) {
+        const node = {
+          name: `${i + 1}`,
+          children: []
+        };
+        for (let j = 0; j < numNodes; j++) {
+          if (adjMatrix[i][j] === 1) {
+            node.children.push({
+              name: ` ${j + 1}`
+            });
+          }
+        }
+        treeData.children.push(node);
+      }
+
+      return treeData;
+    }
+
+    function readFile() {
+      const fileInput = document.getElementById('fileInput');
+      const file = fileInput.files[0];
+
+      if (file) {
+        const reader = new FileReader();
+
+        reader.onload = function (e) {
+          const csvText = e.target.result;
+          const adjMatrix = parseCSV(csvText);
+          generateRT(adjMatrix);
+        };
+
+        reader.readAsText(file);
+      } else {
+        alert('Please select a file.');
+      }
+    }
+
+    function parseCSV(csvText) {
+      // Assuming CSV format with rows and columns separated by commas
+      const rows = csvText.split('\n');
+      const adjMatrix = [];
+
+      for (let i = 0; i < rows.length; i++) {
+        const cols = rows[i].split(',');
+        const rowValues = cols.map(value => parseInt(value.trim(), 10));
+        adjMatrix.push(rowValues);
+      }
+
+      return adjMatrix;
+    }
+  </script>
+
+</body>
+
+</html>

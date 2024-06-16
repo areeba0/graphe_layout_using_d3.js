@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chord Diagram</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+
+<body>
+<style>
+ button {
+    outline: none;
+    color: #f2f2f2;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 8px;
+    padding: 10px 16px; /* Adjust the padding as needed */
+    border: none;
+    margin: 8px 12px; /* Adjust the margin between buttons */
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background-image: linear-gradient(135deg, #b4aee8 10%, #9370DB 100%);
+}
+
+button:hover {
+    transform: scale(0.95);
+    background-image: linear-gradient(135deg, #9370DB 10%, #b4aee8 100%);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+</style>
+    <input type="file" id="fileInput" />
+    <button onclick="handleFile()">Create Chord Diagram</button>
+    <svg id="chordDiagram" width="600" height="600"></svg>
+
+    <script>
+        function handleFile() {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+
+            if (file) {
+                const reader = new FileReader();
+
+                reader.onload = function (e) {
+                    const data = d3.csvParseRows(e.target.result);
+                    createChordLayout(data);
+                };
+
+                reader.readAsText(file);
+            } else {
+                alert('Please select a file.');
+            }
+        }
+
+        function createChordLayout(data) {
+            const nodes = Array.from(new Set(data.flat()));
+            const matrix = Array.from({ length: nodes.length }, () => Array(nodes.length).fill(0));
+
+            data.forEach(d => {
+                const sourceIndex = nodes.indexOf(d[0]);
+                const targetIndex = nodes.indexOf(d[1]);
+                matrix[sourceIndex][targetIndex]++;
+                matrix[targetIndex][sourceIndex]++; // If the graph is undirected
+            });
+
+            const width = 600;
+            const height = 600;
+            const outerRadius = Math.min(width, height) * 0.5 - 70;
+            const innerRadius = outerRadius - 30;
+
+            const svg = d3.select("#chordDiagram")
+                .attr("width", width)
+                .attr("height", height)
+                .append("g")
+                .attr("transform", `translate(${width / 2},${height / 2})`);
+
+            const chord = d3.chord()
+                .padAngle(0.05)
+                .sortSubgroups(d3.descending)
+                .sortChords(d3.descending);
+
+            // Use shades of purple
+            const colorScale = d3.scaleOrdinal()
+                .range(['#6A0DAD', '#DDA0DD', '#8F00FF', '#BA55D3', '#8A2BE2']);
+
+            // Add the chords
+            const chords = svg.append("g")
+                .selectAll("path")
+                .data(chord(matrix))
+                .enter().append("path")
+                .attr("d", d3.ribbon().radius(innerRadius))
+                .style("fill", (_, i) => colorScale(i))
+                .style("stroke", (_, i) => d3.rgb(colorScale(i)).darker());
+
+            // Add labels to the chords
+            svg.append("g")
+                .selectAll("text")
+                .data(chord(matrix).groups)
+                .enter().append("text")
+                .attr("dy", ".35em")
+                .attr("transform", d => `
+                    rotate(${(d.startAngle + d.endAngle) / 2 * (180 / Math.PI) - 90})
+                    translate(${outerRadius + 10}, 0)
+                    ${((d.startAngle + d.endAngle) / 2) > Math.PI ? "rotate(180)" : ""}
+                `)
+                .attr("text-anchor", d => ((d.startAngle + d.endAngle) / 2) > Math.PI ? "end" : null)
+                .text((d, i) => nodes[i]);
+
+            // Add ribbons with gradient and border
+            const gradient = svg.append("defs").selectAll("linearGradient")
+                .data(chord(matrix))
+                .enter().append("linearGradient")
+                .attr("id", (d, i) => `ribbon-gradient-${i}`)
+                .attr("gradientUnits", "userSpaceOnUse")
+                .attr("x1", d => innerRadius * Math.cos((d.source.endAngle + d.source.startAngle) / 2))
+                .attr("y1", d => innerRadius * Math.sin((d.source.endAngle + d.source.startAngle) / 2))
+                .attr("x2", d => innerRadius * Math.cos((d.target.endAngle + d.target.startAngle) / 2))
+                .attr("y2", d => innerRadius * Math.sin((d.target.endAngle + d.target.startAngle) / 2));
+
+            gradient.append("stop")
+                .attr("offset", "0%")
+                .attr("stop-color", (_, i) => colorScale(i));
+
+            gradient.append("stop")
+                .attr("offset", "100%")
+                .attr("stop-color", (_, i) => d3.rgb(colorScale(i)).darker());
+
+            svg.append("g")
+                .selectAll("path")
+                .data(chord(matrix))
+                .enter().append("path")
+                .attr("d", d3.ribbon().radius(innerRadius))
+                .style("fill", (d, i) => `url(#ribbon-gradient-${i})`)
+                .style("stroke", (_, i) => d3.rgb(colorScale(i)).darker());
+
+            // Add labels to the outer arcs
+            const outerArc = d3.arc()
+                .innerRadius(innerRadius)
+                .outerRadius(outerRadius);
+
+            svg.append("g")
+                .selectAll("text")
+                .data(chord(matrix).groups)
+                .enter().append("text")
+                .attr("dy", ".35em")
+                .attr("transform", d => `
+                    rotate(${(d.startAngle + d.endAngle) / 2 * (180 / Math.PI) - 90})
+                    translate(${outerRadius + 10}, 0)
+                    ${((d.startAngle + d.endAngle) / 2) > Math.PI ? "rotate(180)" : ""}
+                `)
+                .attr("text-anchor", d => ((d.startAngle + d.endAngle) / 2) > Math.PI ? "end" : null)
+                .text((d, i) => nodes[i]);
+        }
+    </script>
+</body>
+
+</html>
