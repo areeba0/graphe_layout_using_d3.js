@@ -3,6 +3,9 @@
 # Overview
 GRAPHI is a software for visualizing graph layouts using custom algorithms in D3.js. It enables users to upload an adjacency matrix, classify the graph type, and visualize it using various layout options tailored to the graph's characteristics.
 
+![graphi_homepage](https://github.com/areeba0/graphe_layout_using_d3.js/assets/136759791/da70e94a-271b-438a-9da8-3a467bf13542)
+
+
 The project is divided into several components, each handling a different type of graph layout. This README overviews the project structure, setup instructions, and a brief component description.
 
 # Technologies
